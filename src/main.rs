@@ -9,6 +9,13 @@
 
 // LOAD R0,10
 
+use crate::lexer::{dump_instructions_from_file, to_instructions_list};
+use std::env;
+
+mod lexer;
+
+
+
 enum Instruction{
     Load(usize,i64),
     Add(usize,usize),
@@ -137,17 +144,24 @@ impl CPU {
 }
 
 
-fn main() {
-    let program = vec![
-        Instruction::Load(0, 0),
-        Instruction::Load(2, 10),
-        Instruction::Inc(0),
-        Instruction::Print(0),
-        Instruction::Cmp(0,2),
-        Instruction::Jne(2),
-        Instruction::Halt,
-    ];
+fn main(){
+    let args: Vec<String> = env::args().collect();
+
+    if args.len() < 2 {
+        eprintln!("lies: fatal error: no input files");
+        eprintln!("compilation terminated");
+        return;
+    }
+
+    let program = dump_instructions_from_file(&args[1]);
+
 
     let mut cpu = CPU::new();
     cpu.run(&program);
+
+    /* let res = to_instructions_list("/home/mazeed/Projects/lies/src/inc.lasm").expect("File Io Failed");
+
+    for s in res.iter(){
+        println!("{:?}",s);
+    } */
 }

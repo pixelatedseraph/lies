@@ -1,0 +1,7 @@
+load R0 0
+load R1 102
+inc R0
+conswrite R0
+cmp R0 R1
+jne 2
+halt
