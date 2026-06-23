@@ -17,16 +17,20 @@ enum Instruction{
     Div(usize,usize),
     Print(usize),
     Halt,
+    Jmp(usize),
+    Cmp(usize,usize),
+    Je(usize),
+    Jne(usize),
+    Inc(usize),
+    Dec(usize),
 }
 
 struct CPU{
     registers: [i64 ; 4],
     program_counter : usize,
+    halted_flag     : bool,
     zero_flag       : bool,
     sign_flag       : bool,
-    carry_flag      : bool,
-    overflow_flag   : bool,
-    halted_flag          : bool,
 }
 
 
@@ -37,7 +41,7 @@ impl CPU {
             program_counter: 0,
             halted_flag: false, 
             zero_flag : false,
-            
+            sign_flag : false,
         }
     }
 
@@ -50,21 +54,75 @@ impl CPU {
             }
             Instruction::Add(dst,src ) => {
                 self.registers[*dst] += self.registers[*src];
+                if self.registers[*dst] == 0{
+                    self.zero_flag = true;
+                }
+                else {
+                    self.zero_flag = false;
+                }
             }
             Instruction::Sub(dst,src ) => {
                 self.registers[*dst] -= self.registers[*src];
+                if self.registers[*dst] == 0{
+                    self.zero_flag = true;
+                }
+                else {
+                    self.zero_flag = false;
+                }
             }
             Instruction::Mul(dst,src ) => {
                 self.registers[*dst] *= self.registers[*src];
+                if self.registers[*dst] == 0{
+                    self.zero_flag = true;
+                }
+                else {
+                    self.zero_flag = false;
+                }
             }
             Instruction::Div(dst,src ) => {
                 self.registers[*dst] /= self.registers[*src];
+                if self.registers[*dst] == 0{
+                    self.zero_flag = true;
+                }
+                else {
+                    self.zero_flag = false;
+                }
             }
             Instruction::Print(reg) => {
                 println!("{:?}",self.registers[*reg]);
             }
             Instruction::Halt =>{
                 self.halted_flag = true;
+            }
+            Instruction::Jmp(pc_set) =>{
+                self.program_counter = *pc_set-1;
+            }
+            Instruction::Cmp(reg1,reg2 ) =>{
+                if self.registers[*reg1] - self.registers[*reg2] == 0{
+                    self.zero_flag = true;
+                }
+                else if self.registers[*reg1] - self.registers[*reg2] > 0{
+                    self.sign_flag = false;
+                }
+                else {
+                    self.sign_flag = true;
+                }
+            }
+            Instruction::Je(pc_set) => {
+                if self.zero_flag == true{
+                    self.program_counter = *pc_set - 1;
+                }
+            }
+            Instruction::Jne(pc_set) => {
+                if self.zero_flag == false{
+                    self.program_counter = *pc_set - 1;
+                }
+            }
+            Instruction::Inc(reg) => {
+                self.registers[*reg] += 1;
+            }
+            Instruction::Dec(reg) => {
+                self.registers[*reg] -= 1;
             }
         }
     self.program_counter +=1;
@@ -79,14 +137,15 @@ impl CPU {
 }
 
 
-
 fn main() {
     let program = vec![
-        Instruction::Load(0, 10),
-        Instruction::Load(1, 20),
-        Instruction::Add(0,1),
+        Instruction::Load(0, 0),
+        Instruction::Load(2, 10),
+        Instruction::Inc(0),
         Instruction::Print(0),
-        Instruction::Halt
+        Instruction::Cmp(0,2),
+        Instruction::Jne(2),
+        Instruction::Halt,
     ];
 
     let mut cpu = CPU::new();
